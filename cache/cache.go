@@ -2,8 +2,9 @@ package cache
 
 import (
 	"bytes"
-	"fmt"
+	"homeTask/config"
 	"io"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -56,7 +57,7 @@ func (t *CachedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	// Check if the response body is already cached
 	if cachedBody, ok := t.Cache.Get(cacheKey); ok {
-		fmt.Println("Cache hit for", cacheKey)
+		log.Println("Cache hit for", cacheKey)
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       io.NopCloser(bytes.NewReader(cachedBody)),
@@ -64,7 +65,7 @@ func (t *CachedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	// If not cached, make the request and cache the response body
-	fmt.Println("Cache miss for", cacheKey)
+	log.Println("Cache miss for", cacheKey)
 	resp, err := t.BaseTransport.RoundTrip(req)
 	if err != nil {
 		return nil, err
@@ -82,7 +83,7 @@ func (t *CachedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	// Cache the response body
-	t.Cache.Set(cacheKey, body, time.Now().Add(5*time.Minute)) // Adjust expiry time as needed
+	t.Cache.Set(cacheKey, body, time.Now().Add(config.DefaultCacheTTL)) // Adjust expiry time as needed
 
 	// Since we've read the response body, we need to create a new response
 	// with the cached body and the original status code

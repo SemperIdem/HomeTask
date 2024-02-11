@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"homeTask/cache"
+	"homeTask/config"
 	"homeTask/controllers"
 	"homeTask/server"
 	"log"
@@ -26,26 +26,24 @@ func main() {
 			BaseTransport: http.DefaultTransport,
 		},
 	}
-	t := controllers.New(client)
+	t := controllers.New(client, config.NumWorkers, config.NumbJobs)
 
 	out := make(chan []int)
 
 	srv, srvCancel := server.New(ctx, t, out)
 	defer srvCancel()
 
-	go t.FetchData(out)
+	go t.StartTasks(ctx)
 
 	srv.SetUpRoutes()
-	err := srv.ListenAndServeHTTP(":" + "8080")
+	err := srv.ListenAndServeHTTP(":" + config.DefaultPort)
 	if err != nil {
 		log.Panicf("Error http.ListenAndServe failed: " + err.Error())
 	}
-
-	fmt.Println("test")
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
 	stopSignal := <-stop
-	fmt.Println("Classifier Container Logs received signal: ", stopSignal)
+	log.Println("Service received signal: ", stopSignal)
 }

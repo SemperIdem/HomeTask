@@ -4,23 +4,27 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"homeTask/controllers"
+	log "github.com/sirupsen/logrus"
 	"net"
 	"net/http"
-	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type Server struct {
 	router *http.ServeMux
 	srv    *http.Server
 
-	ctrl   *controllers.TaskManager
+	ctrl   NumbersFetcher
 	result chan []int
 }
 
-func New(ctx context.Context, ctrl *controllers.TaskManager, result chan []int) (*Server, func()) {
+type NumbersFetcher interface {
+	ProcessUrls(urls []string)
+	Receive() chan []int
+}
+
+//go:generate mockgen -destination=./mocks/mocks_numbersFetcher.go --build_flags=--mod=mod -package=mocks homeTask/server NumbersFetcher
+
+func New(ctx context.Context, ctrl NumbersFetcher, result chan []int) (*Server, func()) {
 	s := &Server{
 		router: http.NewServeMux(),
 		result: result,
@@ -36,10 +40,8 @@ func (srv *Server) ListenAndServeHTTP(addr string) error {
 	log.Printf("Starting http listener on %s", addr)
 
 	srv.srv = &http.Server{
-		Addr:         addr,
-		Handler:      srv.router,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
+		Addr:    addr,
+		Handler: srv.router,
 	}
 
 	ln, err := net.Listen("tcp", srv.srv.Addr)
@@ -67,7 +69,7 @@ func (srv *Server) Shutdown(ctx context.Context) {
 }
 
 func (srv *Server) SetUpRoutes() {
-	srv.router.HandleFunc("/numbers", srv.Numbers())
+	srv.router.HandleFunc("/numbers", Numbers(srv.ctrl))
 
 }
 
