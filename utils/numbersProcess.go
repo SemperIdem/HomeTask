@@ -2,6 +2,8 @@ package utils
 
 import "sort"
 
+// ProcessNumbers does all the things: merge new array into sorted source.
+// the code doesn't look easy, but it the costs of efficiency
 func ProcessNumbers(source, new []int) []int {
 
 	sort.Ints(new)

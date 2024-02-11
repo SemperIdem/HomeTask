@@ -9,6 +9,8 @@ import (
 	"net/http"
 )
 
+// Numbers parses URL's from query paramaters, sends them to the controller
+// getting back slices of ints and process them
 func Numbers(ctrl NumbersFetcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), config.DefaultTimeout)

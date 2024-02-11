@@ -9,6 +9,8 @@ import (
 	"net/http"
 )
 
+// NumbersFetcher implements WorkerPool pattern, processing URLs,
+// fetching the data and send it back to the number handler
 type NumbersFetcher struct {
 	urls   chan string
 	client HTTPClient
