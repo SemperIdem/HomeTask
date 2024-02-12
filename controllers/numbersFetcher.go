@@ -16,7 +16,6 @@ type NumbersFetcher struct {
 	client HTTPClient
 
 	numWorkers int
-	numbJobs   int
 	jobs       chan string
 	Sender
 }
@@ -30,6 +29,10 @@ type Sender interface {
 //go:generate mockgen -destination=./mocks/mocks_sender.go --build_flags=--mod=mod -package=mocks homeTask/controllers Sender
 type SenderNumbers struct {
 	results chan []int
+}
+
+func NewSenderNumbers(numbJobs int) *SenderNumbers {
+	return &SenderNumbers{make(chan []int, numbJobs)}
 }
 
 func (s *SenderNumbers) Send(nums []int) {
@@ -50,15 +53,14 @@ type NumbersResponse struct {
 	Numbers []int `json:"numbers"`
 }
 
-func New(client HTTPClient, numWorkers, numJobs int) *NumbersFetcher {
+func New(client HTTPClient, sender Sender, numWorkers int) *NumbersFetcher {
 	return &NumbersFetcher{
 		urls:       make(chan string),
 		client:     client,
 		numWorkers: numWorkers,
-		numbJobs:   numJobs,
 
 		jobs:   make(chan string, numWorkers),
-		Sender: &SenderNumbers{make(chan []int, numJobs)},
+		Sender: sender,
 	}
 }
 

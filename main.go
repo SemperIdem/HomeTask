@@ -26,7 +26,9 @@ func main() {
 			BaseTransport: http.DefaultTransport,
 		},
 	}
-	t := controllers.New(client, config.NumWorkers, config.NumbJobs)
+
+	sender := controllers.NewSenderNumbers(config.NumbJobs)
+	t := controllers.New(client, sender, config.NumWorkers)
 
 	out := make(chan []int)
 
