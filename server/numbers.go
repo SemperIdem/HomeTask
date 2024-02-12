@@ -7,12 +7,15 @@ import (
 	"homeTask/utils"
 	"log"
 	"net/http"
+	"time"
 )
 
 // Numbers parses URL's from query paramaters, sends them to the controller
 // getting back slices of ints and process them
 func Numbers(ctrl NumbersFetcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		defer timeTrack(start, "Numbers")
 		ctx, cancel := context.WithTimeout(r.Context(), config.DefaultTimeout)
 		defer cancel()
 
@@ -43,4 +46,9 @@ func Numbers(ctrl NumbersFetcher) http.HandlerFunc {
 			}
 		}
 	}
+}
+
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
 }

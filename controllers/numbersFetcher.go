@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"homeTask/config"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -102,7 +101,6 @@ func (t *NumbersFetcher) FetchNumbers(url string, ctx context.Context) {
 	select {
 	case <-taskCtx.Done():
 	default:
-		log.Println("sent ", result)
 		t.Send(result)
 	}
 }
@@ -110,14 +108,15 @@ func (t *NumbersFetcher) FetchNumbers(url string, ctx context.Context) {
 func ReadNumbers(resp *http.Response) []int {
 	var result NumbersResponse
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("err handle it ,", resp.Status)
-	}
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		log.Println("err handle json")
-	}
+	// just skips errors, no need for handle them for this task
+	body, _ := io.ReadAll(resp.Body)
+	//if err != nil {
+	//	log.Println("err handle it ,", resp.Status)
+	//}
+	_ = json.Unmarshal(body, &result)
+	//if err != nil {
+	//	log.Println("err handle json")
+	//}
 
 	return result.Numbers
 }
