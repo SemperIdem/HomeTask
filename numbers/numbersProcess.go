@@ -1,9 +1,10 @@
-package utils
+package numbers
 
 import "sort"
 
 // ProcessNumbers does all the things: merge new array into sorted source.
 // the code doesn't look easy, but it the costs of efficiency
+// Didn't cover function by unit test, because the functionality covered in controller
 func ProcessNumbers(source, new []int) []int {
 
 	sort.Ints(new)

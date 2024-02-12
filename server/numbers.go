@@ -4,6 +4,7 @@ import (
 	"context"
 	"homeTask/config"
 	"homeTask/controllers"
+	"homeTask/numbers"
 	"homeTask/utils"
 	"log"
 	"net/http"
@@ -36,7 +37,7 @@ func Numbers(ctrl NumbersFetcher) http.HandlerFunc {
 				utils.RespondJSON(w, &controllers.NumbersResponse{Numbers: source})
 				return
 			case received = <-ctrl.Receive():
-				source = utils.ProcessNumbers(source, received)
+				source = numbers.ProcessNumbers(source, received)
 				done--
 				if done == 0 {
 					log.Println("All jobs finished")
