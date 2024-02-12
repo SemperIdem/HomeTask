@@ -21,6 +21,7 @@ type NumbersFetcher struct {
 	Sender
 }
 
+// Sender send retrived nums to Handler
 type Sender interface {
 	Send(data []int)
 	Receive() chan []int
@@ -44,6 +45,7 @@ type HTTPClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
+// NumbersResponse struct to unmarshall numbers from any json, contains the field
 type NumbersResponse struct {
 	Numbers []int `json:"numbers"`
 }
@@ -60,12 +62,21 @@ func New(client HTTPClient, numWorkers, numJobs int) *NumbersFetcher {
 	}
 }
 
+// StartTasks start worker pool
 func (t *NumbersFetcher) StartTasks(ctx context.Context) {
 	for i := 0; i < t.numWorkers; i++ {
 		go t.task(ctx)
 	}
 }
 
+// task start worker
+func (t *NumbersFetcher) task(ctx context.Context) {
+	for job := range t.jobs {
+		t.FetchNumbers(job, ctx)
+	}
+}
+
+// StartTasks send urls to worker pool, launch in handler
 func (t *NumbersFetcher) ProcessUrls(urls []string) {
 	for i := range urls {
 		t.jobs <- urls[i]
@@ -73,12 +84,8 @@ func (t *NumbersFetcher) ProcessUrls(urls []string) {
 	}
 }
 
-func (t *NumbersFetcher) task(ctx context.Context) {
-	for job := range t.jobs {
-		t.FetchNumbers(job, ctx)
-	}
-}
-
+// FetchNumbers request external URL, retrive a number and send to handler
+// if there is timeout, http client will finish and cache succesful request, but don't send data to handler this time
 func (t *NumbersFetcher) FetchNumbers(url string, ctx context.Context) {
 
 	taskCtx, cancel := context.WithTimeout(ctx, config.DefaultTimeout)
