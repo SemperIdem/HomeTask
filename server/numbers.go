@@ -24,7 +24,8 @@ func Numbers(ctrl NumbersFetcher) http.HandlerFunc {
 
 		ctrl.ProcessUrls(urls)
 		done := len(urls)
-		var source, received []int
+
+		source, received := []int{}, []int{}
 		for {
 			select {
 			case <-ctx.Done():

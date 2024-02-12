@@ -8,13 +8,13 @@ func ProcessNumbers(source, new []int) []int {
 
 	sort.Ints(new)
 
+	if len(new) == 0 {
+		return source
+	}
+
 	if len(source) == 0 {
 		new = deduplicate(new)
 		return new
-	}
-
-	if len(new) == 0 {
-		return source
 	}
 
 	merged := make([]int, 0, len(source)+len(new))
