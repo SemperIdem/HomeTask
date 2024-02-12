@@ -57,9 +57,7 @@ func TestNumbersFetcher_FetchNumbers(t *testing.T) {
 		tt.tuneMockSender(sender)
 		tt.tuneMockHTTPClient(httpClient)
 
-		numbersFetcher := New(httpClient, config.NumWorkers, config.NumbJobs)
-		numbersFetcher.Sender = sender
-
+		numbersFetcher := New(httpClient, sender, config.NumWorkers)
 		numbersFetcher.FetchNumbers("Test", context.TODO())
 
 	}
