@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"homeTask/config"
 	"io"
-	"log"
 	"net/http"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Entry struct {

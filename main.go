@@ -6,11 +6,12 @@ import (
 	"homeTask/config"
 	"homeTask/controllers"
 	"homeTask/server"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {

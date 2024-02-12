@@ -6,9 +6,10 @@ import (
 	"homeTask/controllers"
 	"homeTask/numbers"
 	"homeTask/utils"
-	"log"
 	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Numbers parses URL's from query paramaters, sends them to the controller
