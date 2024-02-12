@@ -1,0 +1,13 @@
+###
+# default request with 3 paramaters
+GET http://127.0.0.1:8080/numbers?u=http://localhost:8090/fibo&u=http://localhost:8090/primes&u=http://localhost:8090/odd
+
+
+###
+# with invalid url will return empty array
+GET http://127.0.0.1:8080/numbers?u=invalidurl
+
+
+###
+# just request external API
+GET http://localhost:8090/primes
