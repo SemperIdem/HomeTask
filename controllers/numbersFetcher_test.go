@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 	"homeTask/config"
 	"homeTask/controllers/mocks"
 	"io"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestNumbersFetcher_FetchNumbers(t *testing.T) {
@@ -16,38 +18,34 @@ func TestNumbersFetcher_FetchNumbers(t *testing.T) {
 		name               string
 		tuneMockHTTPClient func(m *mocks.MockHTTPClient)
 		tuneMockSender     func(m *mocks.MockSender)
-		expectedNums       []int
-		isTimeOut          bool
 	}{
 		{
-			name: "default",
+			name: "succes when you send the data",
 			tuneMockHTTPClient: func(m *mocks.MockHTTPClient) {
 				m.EXPECT().Get(gomock.Any()).Return(
 					&http.Response{
 						StatusCode: http.StatusOK,
 						Body: io.NopCloser(bytes.NewReader([]byte(`{"numbers": [1,2,3,4,5], 
-							"strings": ["one", "two", "three", "four", "five"}}`))),
+							"strings": ["one", "two", "three", "four", "five"]}`))),
 					}, nil)
 			},
 			tuneMockSender: func(m *mocks.MockSender) {
 				m.EXPECT().Send(gomock.Any()).Times(1)
 			},
-			expectedNums: []int{1, 2, 3, 4, 5},
 		},
 		{
-			name: "timeout",
+			name: "emulate timeout, data is not sending",
 			tuneMockHTTPClient: func(m *mocks.MockHTTPClient) {
-				m.EXPECT().Get(gomock.Any()).Return(
+				m.EXPECT().Get(gomock.Any()).Do(func(_ interface{}) { time.Sleep(1 * time.Second) }).Return(
 					&http.Response{
 						StatusCode: http.StatusOK,
 						Body: io.NopCloser(bytes.NewReader([]byte(`{"numbers": [1,2,3,4,5], 
-							"strings": ["one", "two", "three", "four", "five"}}`))),
+							"strings": ["one", "two", "three", "four", "five"]}`))),
 					}, nil)
 			},
 			tuneMockSender: func(m *mocks.MockSender) {
-				m.EXPECT().Send(gomock.Any()).Times(1)
+				m.EXPECT().Send(gomock.Any()).Times(0)
 			},
-			expectedNums: []int{1, 2, 3, 4, 5},
 		},
 	}
 
@@ -62,7 +60,29 @@ func TestNumbersFetcher_FetchNumbers(t *testing.T) {
 		numbersFetcher := New(httpClient, config.NumWorkers, config.NumbJobs)
 		numbersFetcher.Sender = sender
 
-		numbersFetcher.FetchNumbers("Test", context.Background())
+		numbersFetcher.FetchNumbers("Test", context.TODO())
 
 	}
+}
+
+func TestReadNumbers(t *testing.T) {
+	tests := []struct {
+		name         string
+		expectedNums []int
+		response     *http.Response
+	}{
+		{
+			response: &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(bytes.NewReader([]byte(`{"numbers":[1,2,3,4,5], "strings":["one", "two", "three", "four", "five"]}`))),
+			},
+			expectedNums: []int{1, 2, 3, 4, 5},
+		},
+	}
+
+	for _, tt := range tests {
+		res := ReadNumbers(tt.response)
+		require.Equal(t, tt.expectedNums, res)
+	}
+
 }

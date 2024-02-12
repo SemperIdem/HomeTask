@@ -91,26 +91,31 @@ func (t *NumbersFetcher) FetchNumbers(url string, ctx context.Context) {
 	taskCtx, cancel := context.WithTimeout(ctx, config.DefaultTimeout)
 	defer cancel()
 
-	var body []byte
-	var err error
-	var result NumbersResponse
+	var result []int
 	resp, err := t.client.Get(url)
 	if err == nil {
 		defer resp.Body.Close()
-
-		body, err = io.ReadAll(resp.Body)
-		if err != nil {
-			log.Println("err handle it ,", resp.Status)
-		}
-		err = json.Unmarshal(body, &result)
-		if err != nil {
-			log.Println("err handle json")
-		}
+		result = ReadNumbers(resp)
 	}
 	select {
 	case <-taskCtx.Done():
 	default:
-		log.Println("sent ", result.Numbers)
-		t.Send(result.Numbers)
+		log.Println("sent ", result)
+		t.Send(result)
 	}
+}
+
+func ReadNumbers(resp *http.Response) []int {
+	var result NumbersResponse
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("err handle it ,", resp.Status)
+	}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		log.Println("err handle json")
+	}
+
+	return result.Numbers
 }
